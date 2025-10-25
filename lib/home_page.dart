@@ -5,9 +5,9 @@ import 'package:intl/intl.dart';
 import 'auth_services.dart';
 import 'firestore_service.dart';
 import 'models/transaction.dart' as app;
+import 'models/category_data.dart';
 import 'reports_page.dart';
-
-enum TransactionType { expense, income }
+import 'widgets/transaction_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
 
   String _getUserDisplayName() {
     if (_user?.displayName != null && _user!.displayName!.isNotEmpty) {
-      final firstName = _user!.displayName!.split(' ').first;
+      final firstName = _user.displayName!.split(' ').first;
       return firstName.isEmpty
           ? 'User'
           : firstName[0].toUpperCase() + firstName.substring(1);
@@ -202,30 +202,33 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 24),
-        Card(
-          color: const Color(0xFF1C1C1E),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Total Balance',
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  NumberFormat.currency(symbol: '\$').format(totalBalance),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
+        SizedBox(
+          width: double.infinity,
+          child: Card(
+            color: const Color(0xFF1C1C1E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total Balance',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    NumberFormat.currency(symbol: '\$').format(totalBalance),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -285,195 +288,10 @@ class _HomePageState extends State<HomePage> {
     BuildContext context, {
     app.Transaction? transaction,
   }) {
-    final isEditing = transaction != null;
-    final formKey = GlobalKey<FormState>();
-    final titleController = TextEditingController(
-      text: transaction?.title ?? '',
-    );
-    final amountController = TextEditingController(
-      text: transaction != null ? transaction.amount.abs().toString() : '',
-    );
-    TransactionType selectedType = (transaction?.amount ?? -1) < 0
-        ? TransactionType.expense
-        : TransactionType.income;
-
-    final List<String> expenseCategories = [
-      'Groceries',
-      'Rent',
-      'Bills',
-      'Transport',
-      'Entertainment',
-      'Shopping',
-      'Other',
-    ];
-    final List<String> incomeCategories = ['Salary', 'Bonus', 'Gift', 'Other'];
-
-    String selectedCategory =
-        transaction?.category ??
-        (selectedType == TransactionType.expense
-            ? expenseCategories.first
-            : incomeCategories.first);
-
-    // Ensure the initial category is valid for the transaction type.
-    if (isEditing) {
-      final currentCategory = transaction.category;
-      if (selectedType == TransactionType.expense &&
-          !expenseCategories.contains(currentCategory)) {
-        selectedCategory = expenseCategories.first;
-      } else if (selectedType == TransactionType.income &&
-          !incomeCategories.contains(currentCategory)) {
-        selectedCategory = incomeCategories.first;
-      }
-    }
-
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1C1C1E),
-              title: Text(
-                isEditing ? 'Edit Transaction' : 'Add Transaction',
-                style: const TextStyle(color: Colors.white),
-              ),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ToggleButtons(
-                      isSelected: [
-                        selectedType == TransactionType.expense,
-                        selectedType == TransactionType.income,
-                      ],
-                      onPressed: (index) {
-                        setState(() {
-                          selectedType = index == 0
-                              ? TransactionType.expense
-                              : TransactionType.income;
-                          selectedCategory =
-                              selectedType == TransactionType.expense
-                              ? expenseCategories.first
-                              : incomeCategories.first;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      selectedColor: Colors.white,
-                      color: Colors.white70,
-                      fillColor: Colors.blueAccent.withOpacity(0.5),
-                      children: const [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('Expense'),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('Income'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: titleController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Title',
-                        labelStyle: TextStyle(color: Colors.white70),
-                      ),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter a title' : null,
-                    ),
-                    TextFormField(
-                      controller: amountController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Amount',
-                        prefixText: '\$',
-                        labelStyle: TextStyle(color: Colors.white70),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      validator: (value) {
-                        if (value!.isEmpty) return 'Please enter an amount';
-                        if (double.tryParse(value) == null) {
-                          return 'Please enter a valid number';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      dropdownColor: const Color(0xFF2C2C2E),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: TextStyle(color: Colors.white70),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white24),
-                        ),
-                      ),
-                      items:
-                          (selectedType == TransactionType.expense
-                                  ? expenseCategories
-                                  : incomeCategories)
-                              .map((String category) {
-                                return DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                );
-                              })
-                              .toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedCategory = newValue!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      final amount = double.parse(amountController.text);
-                      final transactionData = app.Transaction(
-                        title: titleController.text,
-                        amount: selectedType == TransactionType.expense
-                            ? -amount
-                            : amount,
-                        date: DateTime.now(),
-                        category: selectedCategory,
-                      );
-
-                      if (isEditing) {
-                        _firestoreService.updateTransaction(
-                          transaction.id!,
-                          transactionData,
-                        );
-                      } else {
-                        _firestoreService.addTransaction(transactionData);
-                      }
-
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Text(isEditing ? 'Save' : 'Add'),
-                ),
-              ],
-            );
-          },
-        );
+        return TransactionDialog(transaction: transaction);
       },
     );
   }
@@ -504,27 +322,6 @@ class _TransactionListItem extends StatelessWidget {
 
   const _TransactionListItem({required this.transaction, required this.onTap});
 
-  IconData _getIconForCategory(String category) {
-    switch (category.toLowerCase()) {
-      case 'groceries':
-        return Icons.shopping_cart;
-      case 'rent':
-        return Icons.house;
-      case 'salary':
-        return Icons.work;
-      case 'bills':
-        return Icons.receipt;
-      case 'transport':
-        return Icons.directions_car;
-      case 'bonus':
-        return Icons.card_giftcard;
-      case 'entertainment':
-        return Icons.movie;
-      default:
-        return Icons.receipt_long;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final color = transaction.amount < 0 ? Colors.white : Colors.greenAccent;
@@ -541,7 +338,7 @@ class _TransactionListItem extends StatelessWidget {
           leading: CircleAvatar(
             backgroundColor: const Color(0xFF1C1C1E),
             child: Icon(
-              _getIconForCategory(transaction.category),
+              CategoryData.getIconForCategory(transaction.category),
               color: Colors.white70,
             ),
           ),
