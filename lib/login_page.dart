@@ -36,6 +36,7 @@ class _LoginPageState extends State<LoginPage> {
         );
         // Navigation will be handled by AuthGate
       } on FirebaseAuthException catch (e) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message ?? 'Login failed. Please try again.'),

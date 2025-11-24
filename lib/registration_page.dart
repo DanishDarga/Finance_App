@@ -42,6 +42,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         );
         if (mounted) Navigator.of(context).pop(); // Go back to login page
       } on FirebaseAuthException catch (e) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

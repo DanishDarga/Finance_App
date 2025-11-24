@@ -119,6 +119,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
               borderRadius: BorderRadius.circular(8),
               selectedColor: Colors.white,
               color: Colors.white70,
+              // ignore: deprecated_member_use
               fillColor: Colors.blueAccent.withOpacity(0.5),
               children: const [
                 Padding(
@@ -163,7 +164,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               dropdownColor: const Color(0xFF2C2C2E),
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(

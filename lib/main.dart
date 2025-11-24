@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'auth_gate.dart';
 import 'splash_screen.dart'; // Keep splash screen for initial launch
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';

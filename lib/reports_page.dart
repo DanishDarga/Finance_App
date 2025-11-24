@@ -65,6 +65,7 @@ class _ReportsPageState extends State<ReportsPage> {
           final categoryTotals = _calculateCategoryTotals(transactions);
           final totalExpense = categoryTotals.values.fold(
             0.0,
+            // ignore: avoid_types_as_parameter_names
             (sum, item) => sum + item,
           );
           final pieChartSections = _buildPieChartSections(

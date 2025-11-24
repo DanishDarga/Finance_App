@@ -15,9 +15,9 @@ class AuthService {
         password: password,
       );
       return result.user;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       // Re-throw the exception to be caught by the UI
-      throw e;
+      rethrow;
     }
   }
 
@@ -47,9 +47,9 @@ class AuthService {
         });
       }
       return result.user;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       // Re-throw the exception to be caught by the UI
-      throw e;
+      rethrow;
     }
   }
 

@@ -131,6 +131,7 @@ class _HomePageState extends State<HomePage> {
                 .toList();
             final totalBalance = transactions.fold<double>(
               0.0,
+              // ignore: avoid_types_as_parameter_names
               (sum, item) => sum + item.amount,
             );
 
