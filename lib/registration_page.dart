@@ -11,10 +11,12 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final _formKey = GlobalKey<FormState>();
+
   final _emailController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
+
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
@@ -27,184 +29,165 @@ class _RegistrationPageState extends State<RegistrationPage> {
     super.dispose();
   }
 
+  // -----------------------------------------------------
+  // REGISTER USER
+  // -----------------------------------------------------
   void _register() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        await _authService.register(
-          // Pass firstName and lastName
-          _emailController.text,
-          _passwordController.text,
-          _firstNameController.text,
-          _lastNameController.text,
-        );
-        if (mounted) Navigator.of(context).pop(); // Go back to login page
-      } on FirebaseAuthException catch (e) {
-        // ignore: use_build_context_synchronously
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.register(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _firstNameController.text.trim(),
+        _lastNameController.text.trim(),
+      );
+
+      // Success message
+      // Show improved success message
+      // Show improved success message at the TOP
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              e.message ?? 'Registration failed. Please try again.',
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(top: 20, left: 16, right: 16),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            backgroundColor: Colors.green.shade600,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
+            duration: const Duration(seconds: 1), // reduced wait time
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.center, // ⭐ CENTER CONTENT
+              children: const [
+                Icon(Icons.check_circle, color: Colors.white, size: 22),
+                SizedBox(width: 10),
+                Text(
+                  "Account created successfully!",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      // Wait a bit before navigation
+      await Future.delayed(const Duration(milliseconds: 900));
+
+      // Navigate to login
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/auth_gate',
+          (route) => false,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message ?? 'Registration failed'),
             backgroundColor: Colors.red,
           ),
         );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
+  // -----------------------------------------------------
+  // UI
+  // -----------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text('Create Account'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Create Account')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   'Join Financly',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Create an account to get started',
+                Text(
+                  'Create an account to get started.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 48),
+
+                // FIRST NAME
                 TextFormField(
                   controller: _firstNameController,
-                  style: const TextStyle(color: Colors.white),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your first name';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'First Name',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'First Name'),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Please enter your first name'
+                      : null,
                 ),
                 const SizedBox(height: 16),
+
+                // LAST NAME
                 TextFormField(
                   controller: _lastNameController,
-                  style: const TextStyle(color: Colors.white),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your last name';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Last Name',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Last Name'),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Please enter your last name'
+                      : null,
                 ),
                 const SizedBox(height: 16),
+
+                // EMAIL
                 TextFormField(
                   controller: _emailController,
-                  style: const TextStyle(color: Colors.white),
-                  validator: (value) {
-                    if (value == null || !value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  decoration: const InputDecoration(labelText: 'Email'),
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
-                  ),
+                  validator: (value) => (value == null || !value.contains('@'))
+                      ? 'Please enter a valid email'
+                      : null,
                 ),
                 const SizedBox(height: 16),
+
+                // PASSWORD
                 TextFormField(
                   controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Password'),
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  validator: (value) {
-                    if (value == null || value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
-                  ),
+                  validator: (value) => (value == null || value.length < 6)
+                      ? 'Password must be at least 6 characters'
+                      : null,
                 ),
                 const SizedBox(height: 32),
+
+                // BUTTON
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
                         onPressed: _register,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
+                        child: const Text('Register'),
                       ),
               ],
             ),

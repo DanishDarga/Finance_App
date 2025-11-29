@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'auth_gate.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,27 +12,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToNextScreen();
-  }
 
-  void _navigateToNextScreen() {
-    // Wait for 2 seconds before navigating
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          // Use a PageRouteBuilder for a smooth fade transition
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const AuthGate(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
-      }
+    // 👉 Important: Delay navigation until after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const AuthGate(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+          );
+        }
+      });
     });
   }
 
@@ -45,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Text(
           'Financly',
           style: TextStyle(
-            fontFamily: 'DancingScript', // Your custom cursive font
+            fontFamily: 'DancingScript',
             fontSize: 72.0,
             fontWeight: FontWeight.bold,
             color: Colors.white,

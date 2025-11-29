@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'registration_page.dart';
 import 'auth_services.dart';
 
 class LoginPage extends StatefulWidget {
@@ -54,10 +53,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _navigateToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const RegistrationPage()),
-    );
+    Navigator.pushNamed(context, '/register');
   }
 
   @override

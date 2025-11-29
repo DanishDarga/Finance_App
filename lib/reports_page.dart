@@ -306,7 +306,7 @@ class _ReportsPageState extends State<ReportsPage> {
               reservedSize: 48,
               getTitlesWidget: (double value, TitleMeta meta) {
                 return Text(
-                  '\$${value.toInt()}',
+                  '₹${value.toInt()}',
                   style: const TextStyle(color: Colors.white70, fontSize: 10),
                 );
               },

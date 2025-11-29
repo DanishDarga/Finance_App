@@ -11,17 +11,19 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // User is not signed in
+        // 1️⃣ Show loading FIRST
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // 2️⃣ If user is not logged in → show login
         if (!snapshot.hasData) {
           return const LoginPage();
         }
 
-        // Show loading indicator while checking auth state
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        // User is signed in
+        // 3️⃣ User IS logged in → go to home
         return const HomePage();
       },
     );

@@ -48,4 +48,20 @@ class FirestoreService {
   Future<void> deleteTransaction(String transactionId) async {
     await _transactionsRef.doc(transactionId).delete();
   }
+
+  // Delete all transactions for the current user
+  Future<void> deleteAllTransactions() async {
+    if (_uid == null) {
+      throw Exception("User is not logged in.");
+    }
+
+    final querySnapshot = await _transactionsRef.get();
+    final batch = _db.batch();
+
+    for (final doc in querySnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+  }
 }

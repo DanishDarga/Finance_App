@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart'; // Keep splash screen for initial launch
+import 'splash_screen.dart';
+import 'theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+
+// Pages
+import 'login_page.dart';
+import 'registration_page.dart';
+import 'auth_gate.dart';
+import 'home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,9 +24,16 @@ class FinanclyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Financly',
-      theme: ThemeData(
-        primarySwatch: Colors.blue, // We'll use your cursive font
-      ),
+      theme: AppTheme.darkTheme,
+
+      // 👇 THIS IS WHAT WAS MISSING
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegistrationPage(),
+        '/auth_gate': (context) => const AuthGate(),
+        '/home': (context) => const HomePage(),
+      },
+
       home: const SplashScreen(),
     );
   }
