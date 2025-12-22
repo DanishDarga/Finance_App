@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../firestore_service.dart';
+import '../services/firestore_service.dart';
 import '../models/transaction.dart' as app;
 import '../models/category_data.dart';
+import '../core/constants.dart';
 
 enum TransactionType { expense, income }
 
@@ -91,10 +92,10 @@ class _TransactionDialogState extends State<TransactionDialog> {
         : CategoryData.incomeCategories;
 
     return AlertDialog(
-      backgroundColor: const Color(0xFF1C1C1E),
+      backgroundColor: AppConstants.cardColor,
       title: Text(
         _isEditing ? 'Edit Transaction' : 'Add Transaction',
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: AppConstants.textPrimary),
       ),
       content: Form(
         key: _formKey,
@@ -117,11 +118,11 @@ class _TransactionDialogState extends State<TransactionDialog> {
                         : CategoryData.incomeCategories.first;
                   });
                 },
-                borderRadius: BorderRadius.circular(8),
-                selectedColor: Colors.white,
-                color: Colors.white70,
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                selectedColor: AppConstants.textPrimary,
+                color: AppConstants.textSecondary,
                 // ignore: deprecated_member_use
-                fillColor: Colors.blueAccent.withAlpha(128),
+                fillColor: AppConstants.primaryColor.withAlpha(128),
                 children: const [
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -136,10 +137,10 @@ class _TransactionDialogState extends State<TransactionDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppConstants.textPrimary),
                 decoration: const InputDecoration(
                   labelText: 'Title',
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: AppConstants.textSecondary),
                 ),
                 validator: (value) =>
                     value!.isEmpty ? 'Please enter a title' : null,
@@ -147,11 +148,11 @@ class _TransactionDialogState extends State<TransactionDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppConstants.textPrimary),
                 decoration: const InputDecoration(
                   labelText: 'Amount',
-                  prefixText: '₹',
-                  labelStyle: TextStyle(color: Colors.white70),
+                  prefixText: AppConstants.currencySymbol,
+                  labelStyle: TextStyle(color: AppConstants.textSecondary),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -168,10 +169,10 @@ class _TransactionDialogState extends State<TransactionDialog> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedCategory,
                 dropdownColor: const Color(0xFF2C2C2E),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppConstants.textPrimary),
                 decoration: const InputDecoration(
                   labelText: 'Category',
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: AppConstants.textSecondary),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.white24),
                   ),
@@ -195,7 +196,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          child: const Text('Cancel', style: TextStyle(color: AppConstants.textSecondary)),
         ),
         ElevatedButton(
           onPressed: _submit,

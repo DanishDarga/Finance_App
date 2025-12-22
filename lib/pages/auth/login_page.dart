@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'auth_services.dart';
+import '../../services/auth_service.dart';
+import '../../core/constants.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,7 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
+  final _authService = AuthService();
   bool _isLoading = false;
 
   @override
@@ -23,46 +24,43 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _login() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        await _authService.signIn(
-          _emailController.text,
-          _passwordController.text,
-        );
-        // Navigation will be handled by AuthGate
-      } on FirebaseAuthException catch (e) {
-        // ignore: use_build_context_synchronously
+  Future<void> _login() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.signIn(
+        _emailController.text,
+        _passwordController.text,
+      );
+      // Navigation will be handled by AuthGate
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message ?? 'Login failed. Please try again.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppConstants.errorColor,
           ),
         );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
   void _navigateToRegister() {
-    Navigator.pushNamed(context, '/register');
+    Navigator.pushNamed(context, AppConstants.routeRegister);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(AppConstants.paddingLarge),
           child: Form(
             key: _formKey,
             child: Column(
@@ -75,19 +73,22 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppConstants.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Login to your Financly account',
+                const SizedBox(height: AppConstants.paddingSmall),
+                Text(
+                  'Login to your ${AppConstants.appName} account',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppConstants.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 48),
                 TextFormField(
                   controller: _emailController,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppConstants.textPrimary),
                   validator: (value) {
                     if (value == null || !value.contains('@')) {
                       return 'Please enter a valid email';
@@ -97,22 +98,13 @@ class _LoginPageState extends State<LoginPage> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppConstants.paddingMedium),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppConstants.textPrimary),
                   validator: (value) {
                     if (value == null || value.length < 6) {
                       return 'Password must be at least 6 characters';
@@ -121,15 +113,6 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   decoration: const InputDecoration(
                     labelText: 'Password',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -137,24 +120,17 @@ class _LoginPageState extends State<LoginPage> {
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
                         onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
                         child: const Text(
                           'Login',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                          style: TextStyle(fontSize: 18),
                         ),
                       ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppConstants.paddingLarge),
                 TextButton(
                   onPressed: _navigateToRegister,
                   child: const Text(
                     "Don't have an account? Register",
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: AppConstants.textSecondary),
                   ),
                 ),
               ],
@@ -165,3 +141,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'auth_services.dart';
+import '../../services/auth_service.dart';
+import '../../core/constants.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -11,13 +12,11 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final _formKey = GlobalKey<FormState>();
-
   final _emailController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  final AuthService _authService = AuthService();
+  final _authService = AuthService();
   bool _isLoading = false;
 
   @override
@@ -29,43 +28,44 @@ class _RegistrationPageState extends State<RegistrationPage> {
     super.dispose();
   }
 
-  // -----------------------------------------------------
-  // REGISTER USER
-  // -----------------------------------------------------
-  void _register() async {
+  Future<void> _register() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isLoading = true);
 
     try {
       await _authService.register(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        _firstNameController.text.trim(),
-        _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
       );
 
-      // Success message
-      // Show improved success message
-      // Show improved success message at the TOP
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(top: 20, left: 16, right: 16),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            backgroundColor: Colors.green.shade600,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+            margin: const EdgeInsets.only(
+              top: 20,
+              left: AppConstants.paddingMedium,
+              right: AppConstants.paddingMedium,
             ),
-            duration: const Duration(seconds: 1), // reduced wait time
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // ⭐ CENTER CONTENT
-              children: const [
+            padding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: AppConstants.paddingMedium,
+            ),
+            backgroundColor: AppConstants.successColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+            ),
+            duration: const Duration(seconds: 1),
+            content: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 Icon(Icons.check_circle, color: Colors.white, size: 22),
                 SizedBox(width: 10),
                 Text(
-                  "Account created successfully!",
+                  'Account created successfully!',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -81,11 +81,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       // Wait a bit before navigation
       await Future.delayed(const Duration(milliseconds: 900));
 
-      // Navigate to login
+      // Navigate to auth gate
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
-          '/auth_gate',
+          AppConstants.routeAuthGate,
           (route) => false,
         );
       }
@@ -94,7 +94,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message ?? 'Registration failed'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppConstants.errorColor,
           ),
         );
       }
@@ -105,23 +105,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
   }
 
-  // -----------------------------------------------------
-  // UI
-  // -----------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(
+        title: const Text('Create Account'),
+      ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(AppConstants.paddingLarge),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Join Financly',
+                  'Join ${AppConstants.appName}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 32,
@@ -129,7 +128,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppConstants.paddingSmall),
                 Text(
                   'Create an account to get started.',
                   textAlign: TextAlign.center,
@@ -139,8 +138,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                 ),
                 const SizedBox(height: 48),
-
-                // FIRST NAME
                 TextFormField(
                   controller: _firstNameController,
                   decoration: const InputDecoration(labelText: 'First Name'),
@@ -148,9 +145,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ? 'Please enter your first name'
                       : null,
                 ),
-                const SizedBox(height: 16),
-
-                // LAST NAME
+                const SizedBox(height: AppConstants.paddingMedium),
                 TextFormField(
                   controller: _lastNameController,
                   decoration: const InputDecoration(labelText: 'Last Name'),
@@ -158,9 +153,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ? 'Please enter your last name'
                       : null,
                 ),
-                const SizedBox(height: 16),
-
-                // EMAIL
+                const SizedBox(height: AppConstants.paddingMedium),
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(labelText: 'Email'),
@@ -169,20 +162,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ? 'Please enter a valid email'
                       : null,
                 ),
-                const SizedBox(height: 16),
-
-                // PASSWORD
+                const SizedBox(height: AppConstants.paddingMedium),
                 TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(labelText: 'Password'),
                   obscureText: true,
-                  validator: (value) => (value == null || value.length < 6)
-                      ? 'Password must be at least 6 characters'
-                      : null,
+                  validator: (value) =>
+                      (value == null || value.length < 6)
+                          ? 'Password must be at least 6 characters'
+                          : null,
                 ),
                 const SizedBox(height: 32),
-
-                // BUTTON
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
@@ -197,3 +187,4 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 }
+

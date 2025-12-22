@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'auth_gate.dart';
+import '../../core/constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,21 +13,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    // 👉 Important: Delay navigation until after first frame
+    // Delay navigation until after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
-          Navigator.pushReplacement(
+          Navigator.pushReplacementNamed(
             context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const AuthGate(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
+            AppConstants.routeAuthGate,
           );
         }
       });
@@ -36,19 +28,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
+    return Scaffold(
+      body: const Center(
         child: Text(
-          'Financly',
+          AppConstants.appName,
           style: TextStyle(
             fontFamily: 'DancingScript',
             fontSize: 72.0,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppConstants.textPrimary,
           ),
         ),
       ),
     );
   }
 }
+
