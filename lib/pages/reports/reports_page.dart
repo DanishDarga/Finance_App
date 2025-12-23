@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 import 'dart:math' as math;
 import '../../services/firestore_service.dart';
 import '../../models/transaction.dart' as app;
+import '../../models/category_data.dart';
+import '../../models/category.dart';
+import '../analytics/category_analytics_page.dart';
+import '../../core/constants.dart';
 import '../../core/constants.dart';
 
 class ReportsPage extends StatefulWidget {
@@ -20,10 +24,7 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Spending Reports'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Spending Reports'), elevation: 0),
       body: StreamBuilder<QuerySnapshot<app.Transaction>>(
         stream: _firestoreService.getTransactionsStream(),
         builder: (context, snapshot) {
@@ -51,6 +52,23 @@ class _ReportsPageState extends State<ReportsPage> {
               .map((doc) => doc.data())
               .toList();
 
+          // Category totals for current month
+          final now = DateTime.now();
+          final monthTransactions = transactions
+              .where(
+                (t) => t.date.year == now.year && t.date.month == now.month,
+              )
+              .toList();
+          final Map<Category, double> catTotals = {};
+          double monthTotal = 0.0;
+          for (final t in monthTransactions.where((x) => x.amount < 0)) {
+            catTotals[t.category] =
+                (catTotals[t.category] ?? 0) + t.amount.abs();
+            monthTotal += t.amount.abs();
+          }
+          final catEntries = catTotals.entries.toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
+
           // Data Processing
           final monthlySummary = _calculateMonthlySummary(transactions);
           final sortedMonths = monthlySummary.keys.toList()..sort();
@@ -74,6 +92,81 @@ class _ReportsPageState extends State<ReportsPage> {
                     child: _buildIncomeExpenseBarChart(
                       sortedMonths,
                       monthlySummary,
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingLarge),
+                  const Text(
+                    'Category Breakdown (This Month)',
+                    style: TextStyle(
+                      color: AppConstants.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  SizedBox(
+                    height: 220,
+                    child: catEntries.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No spending this month',
+                              style: TextStyle(
+                                color: AppConstants.textSecondary,
+                              ),
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            child: PieChart(
+                              PieChartData(
+                                sections: catEntries.map((e) {
+                                  final pct = monthTotal > 0
+                                      ? e.value / monthTotal
+                                      : 0.0;
+                                  return PieChartSectionData(
+                                    color:
+                                        CategoryData.categoryColors[e.key] ??
+                                        Colors.grey,
+                                    value: e.value,
+                                    title: '${(pct * 100).toStringAsFixed(0)}%',
+                                    radius: 60,
+                                    titleStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                }).toList(),
+                                sectionsSpace: 2,
+                                centerSpaceRadius: 36,
+                              ),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingLarge),
+                  Center(
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppConstants.routeCategoryAnalytics,
+                      ),
+                      icon: const Icon(
+                        Icons.analytics,
+                        color: AppConstants.textPrimary,
+                      ),
+                      label: const Text(
+                        'Open Analytics',
+                        style: TextStyle(color: AppConstants.textPrimary),
+                      ),
                     ),
                   ),
                 ],
@@ -179,7 +272,9 @@ class _ReportsPageState extends State<ReportsPage> {
                 }
                 final monthKey = sortedMonths[idx];
                 final date = DateTime.parse('$monthKey-01');
-                final label = DateFormat(AppConstants.dateFormatMonth).format(date);
+                final label = DateFormat(
+                  AppConstants.dateFormatMonth,
+                ).format(date);
                 return Text(
                   label,
                   style: const TextStyle(
@@ -199,4 +294,3 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 }
-

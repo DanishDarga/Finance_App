@@ -8,6 +8,7 @@ import '../pages/budget/budget_page.dart';
 import '../pages/bills/bills_page.dart';
 import '../pages/investments/investments_page.dart';
 import '../pages/reports/reports_page.dart';
+import '../pages/analytics/category_analytics_page.dart';
 import 'constants.dart';
 
 /// App routing configuration
@@ -61,15 +62,16 @@ class AppRoutes {
           builder: (_) => const ReportsPage(),
           settings: settings,
         );
+      case AppConstants.routeCategoryAnalytics:
+        return MaterialPageRoute(
+          builder: (_) => const CategoryAnalyticsPage(),
+          settings: settings,
+        );
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Text('Page not found'),
-            ),
-          ),
+          builder: (_) =>
+              const Scaffold(body: Center(child: Text('Page not found'))),
         );
     }
   }
 }
-

@@ -18,9 +18,7 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Investments'),
-      ),
+      appBar: AppBar(title: const Text('My Investments')),
       body: StreamBuilder<QuerySnapshot<Investment>>(
         stream: _firestoreService.getInvestmentsStream(),
         builder: (context, snapshot) {
@@ -49,6 +47,13 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
                     onPressed: () => _showAddInvestmentDialog(context),
                     child: const Text('Add Investment'),
                   ),
@@ -164,7 +169,9 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
                         contentPadding: EdgeInsets.zero,
                         title: Text(
                           'Purchased: ${DateFormat(AppConstants.dateFormatDisplay).format(purchaseDate!)}',
-                          style: const TextStyle(color: AppConstants.textSecondary),
+                          style: const TextStyle(
+                            color: AppConstants.textSecondary,
+                          ),
                         ),
                         trailing: const Icon(
                           Icons.calendar_today,
@@ -197,13 +204,22 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                  ),
                   child: const Text('Save'),
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
                       final investment = Investment(
                         name: nameController.text,
                         quantity: double.parse(quantityController.text),
-                        totalInvestment: double.parse(investmentController.text),
+                        totalInvestment: double.parse(
+                          investmentController.text,
+                        ),
                         purchaseDate: purchaseDate!,
                       );
                       _firestoreService.addInvestment(investment);
@@ -219,4 +235,3 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
     );
   }
 }
-

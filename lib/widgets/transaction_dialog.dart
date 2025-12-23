@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/firestore_service.dart';
 import '../models/transaction.dart' as app;
+import '../models/category.dart';
 import '../models/category_data.dart';
 import '../core/constants.dart';
 
@@ -20,7 +21,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
   late TransactionType _selectedType;
-  late String _selectedCategory;
+  late Category _selectedCategory;
   bool get _isEditing => widget.transaction != null;
 
   @override
@@ -118,7 +119,9 @@ class _TransactionDialogState extends State<TransactionDialog> {
                         : CategoryData.incomeCategories.first;
                   });
                 },
-                borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                borderRadius: BorderRadius.circular(
+                  AppConstants.borderRadiusSmall,
+                ),
                 selectedColor: AppConstants.textPrimary,
                 color: AppConstants.textSecondary,
                 // ignore: deprecated_member_use
@@ -166,7 +169,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+              DropdownButtonFormField<Category>(
                 initialValue: _selectedCategory,
                 dropdownColor: const Color(0xFF2C2C2E),
                 style: const TextStyle(color: AppConstants.textPrimary),
@@ -177,10 +180,10 @@ class _TransactionDialogState extends State<TransactionDialog> {
                     borderSide: BorderSide(color: Colors.white24),
                   ),
                 ),
-                items: currentCategories.map((String category) {
-                  return DropdownMenuItem<String>(
+                items: currentCategories.map((Category category) {
+                  return DropdownMenuItem<Category>(
                     value: category,
-                    child: Text(category),
+                    child: Text(CategoryData.displayName(category)),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -196,9 +199,16 @@ class _TransactionDialogState extends State<TransactionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel', style: TextStyle(color: AppConstants.textSecondary)),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: AppConstants.textSecondary),
+          ),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
           onPressed: _submit,
           child: Text(_isEditing ? 'Save' : 'Add'),
         ),

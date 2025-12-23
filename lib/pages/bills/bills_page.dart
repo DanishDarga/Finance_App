@@ -20,9 +20,7 @@ class _BillsPageState extends State<BillsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bills & Subscriptions'),
-      ),
+      appBar: AppBar(title: const Text('Bills & Subscriptions')),
       body: StreamBuilder<QuerySnapshot<Bill>>(
         stream: _firestoreService.getBillsStream(),
         builder: (context, snapshot) {
@@ -51,6 +49,13 @@ class _BillsPageState extends State<BillsPage> {
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
                     onPressed: () => _showAddBillDialog(context),
                     child: const Text('Add Bill'),
                   ),
@@ -68,7 +73,9 @@ class _BillsPageState extends State<BillsPage> {
               final bill = bills[index];
               final isPaid = bill.isPaid;
               final textStyle = TextStyle(
-                color: isPaid ? AppConstants.textSecondary : AppConstants.textPrimary,
+                color: isPaid
+                    ? AppConstants.textSecondary
+                    : AppConstants.textPrimary,
                 decoration: isPaid
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
@@ -96,8 +103,9 @@ class _BillsPageState extends State<BillsPage> {
                     ),
                   ),
                   secondary: Text(
-                    NumberFormat.currency(symbol: AppConstants.currencySymbol)
-                        .format(bill.amount),
+                    NumberFormat.currency(
+                      symbol: AppConstants.currencySymbol,
+                    ).format(bill.amount),
                     style: textStyle.copyWith(fontSize: 16),
                   ),
                 ),
@@ -149,9 +157,7 @@ class _BillsPageState extends State<BillsPage> {
                       TextFormField(
                         controller: amountController,
                         style: const TextStyle(color: AppConstants.textPrimary),
-                        decoration: const InputDecoration(
-                          labelText: 'Amount',
-                        ),
+                        decoration: const InputDecoration(labelText: 'Amount'),
                         keyboardType: TextInputType.number,
                         validator: (value) =>
                             value!.isEmpty ? 'Please enter an amount' : null,
@@ -162,7 +168,9 @@ class _BillsPageState extends State<BillsPage> {
                           dueDate == null
                               ? 'Select Due Date'
                               : 'Due: ${DateFormat(AppConstants.dateFormatDisplay).format(dueDate!)}',
-                          style: const TextStyle(color: AppConstants.textSecondary),
+                          style: const TextStyle(
+                            color: AppConstants.textSecondary,
+                          ),
                         ),
                         trailing: const Icon(
                           Icons.calendar_today,
@@ -195,6 +203,13 @@ class _BillsPageState extends State<BillsPage> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                  ),
                   child: const Text('Save'),
                   onPressed: () {
                     if (formKey.currentState!.validate() && dueDate != null) {
@@ -228,4 +243,3 @@ class _BillsPageState extends State<BillsPage> {
     );
   }
 }
-

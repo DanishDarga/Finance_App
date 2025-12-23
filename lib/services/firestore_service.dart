@@ -4,6 +4,7 @@ import '../models/budget.dart';
 import '../models/bill.dart';
 import '../models/investment.dart';
 import '../models/transaction.dart' as app;
+import '../models/category_data.dart';
 
 /// Service for handling Firestore database operations
 class FirestoreService {
@@ -97,7 +98,9 @@ class FirestoreService {
     String orderBy = 'date',
     bool descending = true,
   }) {
-    return _transactionsRef.orderBy(orderBy, descending: descending).snapshots();
+    return _transactionsRef
+        .orderBy(orderBy, descending: descending)
+        .snapshots();
   }
 
   /// Update an existing transaction
@@ -127,6 +130,35 @@ class FirestoreService {
     }
 
     await batch.commit();
+  }
+
+  /// Auto-categorize all transactions for the current user.
+  /// This reads all transaction documents, runs the lightweight classifier,
+  /// and updates the Firestore `category` field when the computed category
+  /// differs from the stored one.
+  Future<void> autoCategorizeAllTransactions() async {
+    if (_uid == null) throw Exception('User is not logged in.');
+
+    final snapshot = await _transactionsRef.get();
+    final batch = _db.batch();
+    var hasUpdates = false;
+
+    for (final doc in snapshot.docs) {
+      final tx = doc.data();
+      // tx is app.Transaction thanks to converter
+      final computed = CategoryData.autoCategorize(tx.title, tx.amount);
+      final stored = tx.category;
+      if (computed != stored) {
+        batch.update(doc.reference, {
+          'category': CategoryData.categoryToString(computed),
+        });
+        hasUpdates = true;
+      }
+    }
+
+    if (hasUpdates) {
+      await batch.commit();
+    }
   }
 
   // ==================== Bills ====================
@@ -197,4 +229,3 @@ class FirestoreService {
     await _investmentsRef.doc(investmentId).delete();
   }
 }
-

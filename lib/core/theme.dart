@@ -22,6 +22,15 @@ class AppTheme {
         elevation: 0,
         foregroundColor: AppConstants.textPrimary,
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _NoTransitionBuilder(),
+          TargetPlatform.iOS: _NoTransitionBuilder(),
+          TargetPlatform.linux: _NoTransitionBuilder(),
+          TargetPlatform.macOS: _NoTransitionBuilder(),
+          TargetPlatform.windows: _NoTransitionBuilder(),
+        },
+      ),
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
         fillColor: Colors.white10,
@@ -70,6 +79,15 @@ class AppTheme {
         elevation: 0,
         foregroundColor: Colors.black87,
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _NoTransitionBuilder(),
+          TargetPlatform.iOS: _NoTransitionBuilder(),
+          TargetPlatform.linux: _NoTransitionBuilder(),
+          TargetPlatform.macOS: _NoTransitionBuilder(),
+          TargetPlatform.windows: _NoTransitionBuilder(),
+        },
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.grey[100],
@@ -100,5 +118,20 @@ class AppTheme {
         ),
       ),
     );
+  }
+}
+
+class _NoTransitionBuilder extends PageTransitionsBuilder {
+  const _NoTransitionBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
   }
 }

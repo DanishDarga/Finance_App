@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction.dart';
+import '../models/category.dart';
 import '../core/constants.dart';
 
 /// Service for parsing bank statement PDFs
@@ -13,7 +14,7 @@ class PdfParserService {
   factory PdfParserService() => _instance;
 
   /// Parse a bank statement PDF file and extract transactions
-  /// 
+  ///
   /// Returns a list of [Transaction] objects extracted from the PDF
   /// Throws an exception if the PDF cannot be parsed
   Future<List<Transaction>> parseBankStatement(String filePath) async {
@@ -46,8 +47,9 @@ class PdfParserService {
 
         // Parse values
         final amount = double.parse(amountStr.replaceAll(',', ''));
-        final date = DateFormat(AppConstants.dateFormatBankStatement)
-            .parseStrict(dateStr);
+        final date = DateFormat(
+          AppConstants.dateFormatBankStatement,
+        ).parseStrict(dateStr);
 
         // Detect credit / debit using description
         final isDebit = desc.contains('/DR/') || desc.contains('DR');
@@ -73,48 +75,47 @@ class PdfParserService {
     }
   }
 
-  /// Detect category based on transaction description
-  String _detectCategory(String desc) {
+  /// Detect category based on transaction description and return `Category`.
+  Category _detectCategory(String desc) {
     final up = desc.toUpperCase();
 
     if (up.contains('AMAZON') || up.contains('FLIPKART')) {
-      return 'Shopping';
+      return Category.shopping;
     }
     if (up.contains('ZOMATO') || up.contains('SWIGGY')) {
-      return 'Food';
+      return Category.dining;
     }
     if (up.contains('FUEL') || up.contains('HPCL') || up.contains('BPCL')) {
-      return 'Fuel';
+      return Category.transport;
     }
     if (up.contains('UBER') || up.contains('OLA')) {
-      return 'Transport';
+      return Category.transport;
     }
     if (up.contains('SALARY') ||
         up.contains('NEFT CR') ||
         up.contains('/CR/') ||
         up.contains('CREDIT')) {
-      return 'Salary';
+      return Category.salary;
     }
     if (up.contains('ATM')) {
-      return 'Cash Withdrawal';
+      return Category.transfer;
     }
     if (up.contains('RENT')) {
-      return 'Rent';
+      return Category.rent;
     }
     if (up.contains('IRCTC')) {
-      return 'Transport';
+      return Category.transport;
     }
     if (up.contains('INFO EDGE') ||
         up.contains('NETFLIX') ||
         up.contains('OTT') ||
         up.contains('SPOTIFY')) {
-      return 'Entertainment';
+      return Category.entertainment;
     }
     if (up.contains('JIO') || up.contains('AIRTEL')) {
-      return 'Bills';
+      return Category.utilities;
     }
 
-    return 'Other';
+    return Category.other;
   }
 }
-

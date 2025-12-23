@@ -37,6 +37,7 @@ class AppConstants {
   static const String routeBills = '/bills';
   static const String routeInvestments = '/investments';
   static const String routeReports = '/reports';
+  static const String routeCategoryAnalytics = '/analytics/categories';
 
   // Currency
   static const String currencySymbol = '₹';
@@ -53,4 +54,3 @@ class AppConstants {
   static const String billNotificationChannelId = 'bill_reminders';
   static const String billNotificationChannelName = 'Bill Reminders';
 }
-
