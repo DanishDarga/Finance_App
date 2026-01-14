@@ -17,6 +17,9 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+
     return Scaffold(
       appBar: AppBar(title: const Text('My Investments')),
       body: StreamBuilder<QuerySnapshot<Investment>>(
@@ -29,7 +32,7 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
             return Center(
               child: Text(
                 'Error: ${snapshot.error}',
-                style: const TextStyle(color: AppConstants.errorColor),
+                style: TextStyle(color: theme.colorScheme.error),
               ),
             );
           }
@@ -38,10 +41,10 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                   Text(
                     'No investments added yet.',
                     style: TextStyle(
-                      color: AppConstants.textSecondary,
+                      color: textColor.withOpacity(0.6),
                       fontSize: 18,
                     ),
                   ),
@@ -72,7 +75,7 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
             itemBuilder: (context, index) {
               final investment = investments[index];
               return Card(
-                color: AppConstants.cardColor,
+                color: theme.cardTheme.color,
                 margin: const EdgeInsets.symmetric(
                   vertical: AppConstants.paddingSmall,
                   horizontal: AppConstants.paddingSmall,
@@ -80,21 +83,21 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
                 child: ListTile(
                   title: Text(
                     investment.name,
-                    style: const TextStyle(
-                      color: AppConstants.textPrimary,
+                    style: TextStyle(
+                      color: textColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   subtitle: Text(
                     'Qty: ${investment.quantity} • Purchased: ${DateFormat(AppConstants.dateFormatDisplay).format(investment.purchaseDate)}',
-                    style: const TextStyle(color: AppConstants.textSecondary),
+                    style: TextStyle(color: textColor.withOpacity(0.7)),
                   ),
                   trailing: Text(
                     NumberFormat.currency(
                       symbol: AppConstants.currencySymbol,
                     ).format(investment.totalInvestment),
-                    style: const TextStyle(
-                      color: AppConstants.primaryColor,
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
                       fontSize: 16,
                     ),
                   ),
@@ -117,7 +120,15 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
     final nameController = TextEditingController();
     final quantityController = TextEditingController();
     final investmentController = TextEditingController();
-    DateTime? purchaseDate = DateTime.now();
+    final dateController = TextEditingController();
+    DateTime purchaseDate = DateTime.now();
+    dateController.text = DateFormat(
+      AppConstants.dateFormatDisplay,
+    ).format(purchaseDate);
+
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+    final dialogBg = theme.cardTheme.color;
 
     return showDialog<void>(
       context: context,
@@ -125,90 +136,179 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: AppConstants.cardColor,
-              title: const Text(
+              backgroundColor: dialogBg,
+              title: Text(
                 'Add New Investment',
-                style: TextStyle(color: AppConstants.textPrimary),
+                style: TextStyle(color: textColor),
               ),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextFormField(
-                        controller: nameController,
-                        style: const TextStyle(color: AppConstants.textPrimary),
-                        decoration: const InputDecoration(
-                          labelText: 'Investment Name (e.g., Reliance Stock)',
-                        ),
-                        validator: (v) =>
-                            v!.isEmpty ? 'Please enter a name' : null,
-                      ),
-                      TextFormField(
-                        controller: quantityController,
-                        style: const TextStyle(color: AppConstants.textPrimary),
-                        decoration: const InputDecoration(
-                          labelText: 'Quantity',
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (v) =>
-                            v!.isEmpty ? 'Please enter a quantity' : null,
-                      ),
-                      TextFormField(
-                        controller: investmentController,
-                        style: const TextStyle(color: AppConstants.textPrimary),
-                        decoration: const InputDecoration(
-                          labelText: 'Total Investment Amount',
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (v) =>
-                            v!.isEmpty ? 'Please enter an amount' : null,
-                      ),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          'Purchased: ${DateFormat(AppConstants.dateFormatDisplay).format(purchaseDate!)}',
-                          style: const TextStyle(
-                            color: AppConstants.textSecondary,
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        TextFormField(
+                          controller: nameController,
+                          style: TextStyle(
+                            color: textColor,
                           ),
+                          decoration: InputDecoration(
+                            labelText: 'Investment Name',
+                            hintText: 'e.g., Reliance Stock',
+                            hintStyle: TextStyle(
+                              color: textColor.withOpacity(0.5),
+                            ),
+                            labelStyle: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.business,
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.dividerColor,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          validator: (v) =>
+                              v!.isEmpty ? 'Please enter a name' : null,
                         ),
-                        trailing: const Icon(
-                          Icons.calendar_today,
-                          color: AppConstants.textSecondary,
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: quantityController,
+                          style: TextStyle(
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Quantity',
+                            labelStyle: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.pie_chart,
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.dividerColor,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: (v) =>
+                              v!.isEmpty ? 'Please enter a quantity' : null,
                         ),
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: purchaseDate!,
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime.now(),
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              purchaseDate = picked;
-                            });
-                          }
-                        },
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: investmentController,
+                          style: TextStyle(
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Total Investment Amount',
+                            labelStyle: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.attach_money,
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.dividerColor,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: (v) =>
+                              v!.isEmpty ? 'Please enter an amount' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: dateController,
+                          style: TextStyle(
+                            color: textColor,
+                          ),
+                          readOnly: true,
+                          decoration: InputDecoration(
+                            labelText: 'Purchase Date',
+                            labelStyle: TextStyle(
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color: textColor.withOpacity(0.7),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.dividerColor,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: purchaseDate,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                purchaseDate = picked;
+                                dateController.text = DateFormat(
+                                  AppConstants.dateFormatDisplay,
+                                ).format(purchaseDate);
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
               actions: <Widget>[
                 TextButton(
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(color: AppConstants.textSecondary),
+                    style: TextStyle(color: textColor.withOpacity(0.6)),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size.zero,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                      horizontal: 20,
+                      vertical: 12,
                     ),
                   ),
                   child: const Text('Save'),
@@ -220,7 +320,7 @@ class _InvestmentsPageState extends State<InvestmentsPage> {
                         totalInvestment: double.parse(
                           investmentController.text,
                         ),
-                        purchaseDate: purchaseDate!,
+                        purchaseDate: purchaseDate,
                       );
                       _firestoreService.addInvestment(investment);
                       Navigator.of(context).pop();

@@ -5,116 +5,132 @@ import 'constants.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get darkTheme {
-    return ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: Colors.black,
-      primarySwatch: Colors.blue,
-      colorScheme: const ColorScheme.dark(
-        primary: AppConstants.primaryColor,
-        secondary: AppConstants.primaryColor,
-        surface: Colors.white10,
-        onSurface: AppConstants.textSecondary,
-        error: AppConstants.errorColor,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppConstants.textPrimary,
-      ),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: _NoTransitionBuilder(),
-          TargetPlatform.iOS: _NoTransitionBuilder(),
-          TargetPlatform.linux: _NoTransitionBuilder(),
-          TargetPlatform.macOS: _NoTransitionBuilder(),
-          TargetPlatform.windows: _NoTransitionBuilder(),
-        },
-      ),
-      inputDecorationTheme: const InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.white10,
-        labelStyle: TextStyle(color: AppConstants.textSecondary),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white24),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppConstants.textPrimary),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppConstants.primaryColor,
-          foregroundColor: AppConstants.textPrimary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
-          ),
-          textStyle: const TextStyle(fontSize: 18),
-        ),
-      ),
-      cardTheme: CardThemeData(
-        color: AppConstants.cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        ),
-      ),
-    );
-  }
+
 
   static ThemeData get lightTheme {
     return ThemeData(
+      useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: Colors.grey[50],
-      primarySwatch: Colors.blue,
-      colorScheme: const ColorScheme.light(
+      scaffoldBackgroundColor: AppConstants.backgroundColorLight,
+      primaryColor: AppConstants.primaryColor,
+      colorScheme: ColorScheme.light(
         primary: AppConstants.primaryColor,
-        secondary: AppConstants.primaryColor,
-        surface: Colors.white,
+        secondary: AppConstants.secondaryColor,
+        surface: AppConstants.cardColorLight,
         onSurface: Colors.black87,
         error: AppConstants.errorColor,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         foregroundColor: Colors.black87,
-      ),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: _NoTransitionBuilder(),
-          TargetPlatform.iOS: _NoTransitionBuilder(),
-          TargetPlatform.linux: _NoTransitionBuilder(),
-          TargetPlatform.macOS: _NoTransitionBuilder(),
-          TargetPlatform.windows: _NoTransitionBuilder(),
-        },
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.grey[100],
-        labelStyle: const TextStyle(color: Colors.black54),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey[300]!),
+        titleTextStyle: TextStyle(
+          color: Colors.black87,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: AppConstants.primaryColor),
+      ),
+      cardTheme: CardThemeData(
+        color: AppConstants.cardColorLight,
+        elevation: 0, // Flat premium look, we will use custom shadows if needed or keep it clean
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppConstants.primaryColor,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          elevation: 4,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
           ),
-          textStyle: const TextStyle(fontSize: 18),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.all(AppConstants.paddingMedium),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          borderSide: const BorderSide(color: AppConstants.primaryColor, width: 2),
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppConstants.backgroundColorDark,
+      primaryColor: AppConstants.primaryColor,
+      colorScheme: const ColorScheme.dark(
+        primary: AppConstants.primaryColor,
+        secondary: AppConstants.secondaryColor,
+        surface: AppConstants.cardColorDark,
+        onSurface: Colors.white,
+        error: AppConstants.errorColor,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        foregroundColor: Colors.white,
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
         ),
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
-        elevation: 2,
+        color: AppConstants.cardColorDark,
+        surfaceTintColor: Colors.transparent, // Disable M3 tint to keep our custom color pure
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          side: BorderSide(color: Colors.white.withOpacity(0.05), width: 1),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppConstants.primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppConstants.cardColorDark,
+        contentPadding: const EdgeInsets.all(AppConstants.paddingMedium),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          borderSide: const BorderSide(color: AppConstants.primaryColor, width: 2),
         ),
       ),
     );

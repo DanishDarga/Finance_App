@@ -18,7 +18,11 @@ class _BillsPageState extends State<BillsPage> {
   final _notificationService = NotificationService();
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Bills & Subscriptions')),
       body: StreamBuilder<QuerySnapshot<Bill>>(
@@ -31,7 +35,7 @@ class _BillsPageState extends State<BillsPage> {
             return Center(
               child: Text(
                 'Error: ${snapshot.error}',
-                style: const TextStyle(color: AppConstants.errorColor),
+                style: TextStyle(color: theme.colorScheme.error),
               ),
             );
           }
@@ -40,10 +44,10 @@ class _BillsPageState extends State<BillsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                   Text(
                     'No bills added yet.',
                     style: TextStyle(
-                      color: AppConstants.textSecondary,
+                      color: textColor.withOpacity(0.6),
                       fontSize: 18,
                     ),
                   ),
@@ -74,15 +78,15 @@ class _BillsPageState extends State<BillsPage> {
               final isPaid = bill.isPaid;
               final textStyle = TextStyle(
                 color: isPaid
-                    ? AppConstants.textSecondary
-                    : AppConstants.textPrimary,
+                    ? textColor.withOpacity(0.5)
+                    : textColor,
                 decoration: isPaid
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
               );
 
               return Card(
-                color: AppConstants.cardColor,
+                color: theme.cardTheme.color,
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 child: CheckboxListTile(
                   value: isPaid,
@@ -93,8 +97,8 @@ class _BillsPageState extends State<BillsPage> {
                       });
                     }
                   },
-                  activeColor: AppConstants.primaryColor,
-                  checkColor: Colors.white,
+                  activeColor: theme.colorScheme.primary,
+                  checkColor: theme.colorScheme.onPrimary,
                   title: Text(bill.name, style: textStyle),
                   subtitle: Text(
                     'Due on: ${DateFormat(AppConstants.dateFormatDisplay).format(bill.dueDate)}',
@@ -127,6 +131,9 @@ class _BillsPageState extends State<BillsPage> {
     final nameController = TextEditingController();
     final amountController = TextEditingController();
     DateTime? dueDate;
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+    final dialogBg = theme.cardTheme.color;
 
     return showDialog<void>(
       context: context,
@@ -134,10 +141,10 @@ class _BillsPageState extends State<BillsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: AppConstants.cardColor,
-              title: const Text(
+              backgroundColor: dialogBg,
+              title: Text(
                 'Add New Bill',
-                style: TextStyle(color: AppConstants.textPrimary),
+                style: TextStyle(color: textColor),
               ),
               content: Form(
                 key: formKey,
@@ -147,34 +154,56 @@ class _BillsPageState extends State<BillsPage> {
                     children: <Widget>[
                       TextFormField(
                         controller: nameController,
-                        style: const TextStyle(color: AppConstants.textPrimary),
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: textColor),
+                        decoration: InputDecoration(
                           labelText: 'Bill Name (e.g., Netflix)',
+                          labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: theme.dividerColor),
+                            borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: theme.colorScheme.primary),
+                            borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                          ),
                         ),
                         validator: (value) =>
                             value!.isEmpty ? 'Please enter a name' : null,
                       ),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: amountController,
-                        style: const TextStyle(color: AppConstants.textPrimary),
-                        decoration: const InputDecoration(labelText: 'Amount'),
+                        style: TextStyle(color: textColor),
+                        decoration: InputDecoration(
+                            labelText: 'Amount',
+                            labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: theme.dividerColor),
+                              borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: theme.colorScheme.primary),
+                              borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                            ),
+                        ),
                         keyboardType: TextInputType.number,
                         validator: (value) =>
                             value!.isEmpty ? 'Please enter an amount' : null,
                       ),
+                      const SizedBox(height: 16),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
                           dueDate == null
                               ? 'Select Due Date'
                               : 'Due: ${DateFormat(AppConstants.dateFormatDisplay).format(dueDate!)}',
-                          style: const TextStyle(
-                            color: AppConstants.textSecondary,
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.7),
                           ),
                         ),
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.calendar_today,
-                          color: AppConstants.textSecondary,
+                          color: textColor.withOpacity(0.7),
                         ),
                         onTap: () async {
                           final pickedDate = await showDatePicker(
@@ -196,9 +225,9 @@ class _BillsPageState extends State<BillsPage> {
               ),
               actions: <Widget>[
                 TextButton(
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(color: AppConstants.textSecondary),
+                    style: TextStyle(color: textColor.withOpacity(0.6)),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),

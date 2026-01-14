@@ -21,15 +21,20 @@ class _BudgetPageState extends State<BudgetPage> {
   Category? _selectedCategory;
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Budget for ${DateFormat(AppConstants.dateFormatMonthYear).format(_currentDate)}',
+          style: TextStyle(color: textColor),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.bar_chart),
+            icon: Icon(Icons.bar_chart, color: textColor),
             onPressed: () => Navigator.pushNamed(
               context,
               AppConstants.routeCategoryAnalytics,
@@ -54,10 +59,10 @@ class _BudgetPageState extends State<BudgetPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                   Text(
                     'No budget set for this month.',
                     style: TextStyle(
-                      color: AppConstants.textSecondary,
+                      color: textColor.withOpacity(0.6),
                       fontSize: 18,
                     ),
                   ),
@@ -119,11 +124,11 @@ class _BudgetPageState extends State<BudgetPage> {
               return ListView(
                 padding: const EdgeInsets.all(AppConstants.paddingMedium),
                 children: [
-                  _buildCategoryChips(budget),
+                  _buildCategoryChips(budget, theme, textColor),
                   const SizedBox(height: 12),
-                  _buildBudgetCard(budget, totalSpent, remaining, progress),
+                  _buildBudgetCard(budget, totalSpent, remaining, progress, theme, textColor),
                   const SizedBox(height: 12),
-                  ..._buildCategoryBreakdown(budget, allTransactions),
+                  ..._buildCategoryBreakdown(budget, allTransactions, theme, textColor),
                 ],
               );
             },
@@ -143,19 +148,21 @@ class _BudgetPageState extends State<BudgetPage> {
     double spent,
     double remaining,
     double progress,
+    ThemeData theme,
+    Color textColor,
   ) {
     return Card(
-      color: AppConstants.cardColor,
+      color: theme.cardTheme.color,
       margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+             Text(
               'Monthly Budget',
               style: TextStyle(
-                color: AppConstants.textPrimary,
+                color: textColor,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -163,12 +170,12 @@ class _BudgetPageState extends State<BudgetPage> {
             const SizedBox(height: 12),
             Text(
               '${NumberFormat.currency(symbol: AppConstants.currencySymbol).format(spent)} / ${NumberFormat.currency(symbol: AppConstants.currencySymbol).format(budget.amount)}',
-              style: const TextStyle(color: AppConstants.textSecondary),
+              style: TextStyle(color: textColor.withOpacity(0.7)),
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.grey.shade800,
+              backgroundColor: theme.dividerColor,
               valueColor: AlwaysStoppedAnimation<Color>(
                 progress > 0.8
                     ? AppConstants.errorColor
@@ -191,7 +198,7 @@ class _BudgetPageState extends State<BudgetPage> {
     );
   }
 
-  Widget _buildCategoryChips(Budget budget) {
+  Widget _buildCategoryChips(Budget budget, ThemeData theme, Color textColor) {
     final categories = CategoryData.expenseCategories;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -203,6 +210,11 @@ class _BudgetPageState extends State<BudgetPage> {
             child: ChoiceChip(
               selected: selected,
               label: Text(CategoryData.displayName(c)),
+              labelStyle: TextStyle(
+                color: selected ? Colors.white : textColor,
+              ),
+              selectedColor: theme.colorScheme.primary,
+              backgroundColor: theme.cardTheme.color,
               onSelected: (on) {
                 setState(() {
                   _selectedCategory = on ? c : null;
@@ -218,6 +230,8 @@ class _BudgetPageState extends State<BudgetPage> {
   List<Widget> _buildCategoryBreakdown(
     Budget budget,
     List<app.Transaction> allTransactions,
+    ThemeData theme,
+    Color textColor,
   ) {
     final Map<Category, double> spentPerCategory = {};
     for (final tx in allTransactions.where((t) => t.amount < 0)) {
@@ -233,12 +247,12 @@ class _BudgetPageState extends State<BudgetPage> {
       final pct = allocated > 0 ? (spent / allocated).clamp(0.0, 1.0) : 0.0;
 
       return Card(
-        color: AppConstants.cardColor,
+        color: theme.cardTheme.color,
         margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor:
-                CategoryData.categoryColors[c] ?? AppConstants.primaryColor,
+                CategoryData.categoryColors[c] ?? theme.primaryColor,
             child: Icon(
               CategoryData.getIconForCategory(c),
               color: Colors.white,
@@ -246,21 +260,21 @@ class _BudgetPageState extends State<BudgetPage> {
           ),
           title: Text(
             CategoryData.displayName(c),
-            style: const TextStyle(color: AppConstants.textPrimary),
+            style: TextStyle(color: textColor),
           ),
           subtitle: allocated > 0
               ? LinearProgressIndicator(
                   value: pct,
-                  backgroundColor: Colors.grey.shade800,
-                  valueColor: AlwaysStoppedAnimation(AppConstants.primaryColor),
+                  backgroundColor: theme.dividerColor,
+                  valueColor: AlwaysStoppedAnimation(theme.primaryColor),
                 )
               : Text(
                   'Spent: ${NumberFormat.currency(symbol: AppConstants.currencySymbol).format(spent)}',
-                  style: const TextStyle(color: AppConstants.textSecondary),
+                  style: TextStyle(color: textColor.withOpacity(0.7)),
                 ),
           trailing: Text(
             allocated > 0 ? '${(pct * 100).toStringAsFixed(0)}%' : '',
-            style: const TextStyle(color: AppConstants.textPrimary),
+            style: TextStyle(color: textColor),
           ),
           onTap: () => _showSetBudgetDialog(context, budget, c),
         ),
@@ -279,26 +293,38 @@ class _BudgetPageState extends State<BudgetPage> {
     final amountController = TextEditingController(
       text: existingBudget?.amount.toString() ?? '',
     );
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+    final dialogBg = theme.cardTheme.color;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: dialogBg,
         title: Text(
           forCategory == null
               ? (existingBudget == null
                     ? 'Set Monthly Budget'
                     : 'Update Budget')
               : 'Set Budget for ${CategoryData.displayName(forCategory)}',
-          style: const TextStyle(color: AppConstants.textPrimary),
+          style: TextStyle(color: textColor),
         ),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: amountController,
-            style: const TextStyle(color: AppConstants.textPrimary),
-            decoration: const InputDecoration(
+            style: TextStyle(color: textColor),
+            decoration: InputDecoration(
               labelText: 'Total Spending Limit',
+              labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: theme.dividerColor),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: theme.colorScheme.primary),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+              ),
             ),
             keyboardType: TextInputType.number,
             validator: (v) => v!.isEmpty ? 'Enter an amount' : null,
@@ -307,9 +333,9 @@ class _BudgetPageState extends State<BudgetPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: AppConstants.textSecondary),
+              style: TextStyle(color: textColor.withOpacity(0.6)),
             ),
           ),
           ElevatedButton(

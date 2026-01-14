@@ -21,8 +21,11 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Category Analytics')),
+      appBar: AppBar(title: Text('Category Analytics', style: TextStyle(color: textColor))),
       body: StreamBuilder<QuerySnapshot<app.Transaction>>(
         stream: _firestore.getTransactionsStream(),
         builder: (context, snapshot) {
@@ -62,16 +65,16 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
               return ListView(
                 padding: const EdgeInsets.all(AppConstants.paddingMedium),
                 children: [
-                  _buildMonthSelector(),
+                  _buildMonthSelector(theme, textColor),
                   const SizedBox(height: 12),
-                  _buildTopInsight(entries, totalSpent),
+                  _buildTopInsight(entries, totalSpent, theme, textColor),
                   const SizedBox(height: 12),
-                  _buildPieChart(entries, totalSpent),
+                  _buildPieChart(entries, totalSpent, textColor),
                   const SizedBox(height: 12),
-                  ..._buildProgressBars(entries, budget),
+                  ..._buildProgressBars(entries, budget, theme, textColor),
                   const SizedBox(height: 12),
                   ...entries
-                      .map((e) => _buildCategoryRow(e.key, e.value, totalSpent))
+                      .map((e) => _buildCategoryRow(e.key, e.value, totalSpent, theme, textColor))
                       .toList(),
                 ],
               );
@@ -82,18 +85,18 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
     );
   }
 
-  Widget _buildMonthSelector() {
+  Widget _buildMonthSelector(ThemeData theme, Color textColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'Month: ${DateFormat(AppConstants.dateFormatMonthYear).format(_currentDate)}',
-          style: const TextStyle(color: AppConstants.textPrimary, fontSize: 16),
+          style: TextStyle(color: textColor, fontSize: 16),
         ),
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.chevron_left),
+              icon: Icon(Icons.chevron_left, color: textColor),
               onPressed: () => setState(
                 () => _currentDate = DateTime(
                   _currentDate.year,
@@ -102,7 +105,7 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.chevron_right),
+              icon: Icon(Icons.chevron_right, color: textColor),
               onPressed: () => setState(
                 () => _currentDate = DateTime(
                   _currentDate.year,
@@ -119,16 +122,18 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
   Widget _buildTopInsight(
     List<MapEntry<Category, double>> entries,
     double total,
+    ThemeData theme,
+    Color textColor,
   ) {
     if (entries.isEmpty) return const SizedBox.shrink();
     final top = entries.first;
     final pct = total > 0 ? top.value / total : 0.0;
     return Card(
-      color: AppConstants.cardColor,
+      color: theme.cardTheme.color,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor:
-              CategoryData.categoryColors[top.key] ?? AppConstants.primaryColor,
+              CategoryData.categoryColors[top.key] ?? theme.primaryColor,
           child: Icon(
             CategoryData.getIconForCategory(top.key),
             color: Colors.white,
@@ -136,10 +141,11 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
         ),
         title: Text(
           'Top spending: ${CategoryData.displayName(top.key)}',
-          style: const TextStyle(color: AppConstants.textPrimary),
+          style: TextStyle(color: textColor),
         ),
         subtitle: Text(
           '${NumberFormat.currency(symbol: AppConstants.currencySymbol).format(top.value)} • ${(pct * 100).toStringAsFixed(1)}%',
+          style: TextStyle(color: textColor.withOpacity(0.7)),
         ),
       ),
     );
@@ -148,6 +154,7 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
   Widget _buildPieChart(
     List<MapEntry<Category, double>> entries,
     double total,
+    Color textColor,
   ) {
     return SizedBox(
       height: 180,
@@ -155,7 +162,7 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
           ? Center(
               child: Text(
                 'No spending data for this month',
-                style: TextStyle(color: AppConstants.textSecondary),
+                style: TextStyle(color: textColor.withOpacity(0.6)),
               ),
             )
           : CustomPaint(
@@ -163,7 +170,7 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
               child: Center(
                 child: Text(
                   '${NumberFormat.currency(symbol: AppConstants.currencySymbol).format(total)}',
-                  style: const TextStyle(color: AppConstants.textPrimary),
+                  style: TextStyle(color: textColor),
                 ),
               ),
             ),
@@ -173,6 +180,8 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
   List<Widget> _buildProgressBars(
     List<MapEntry<Category, double>> entries,
     Budget? budget,
+    ThemeData theme,
+    Color textColor,
   ) {
     final List<Widget> rows = [];
     final catBudgets = budget?.categoryBudgets ?? {};
@@ -183,19 +192,22 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
       final pct = (e.value / allocated).clamp(0.0, 1.0);
       rows.add(
         Card(
-          color: AppConstants.cardColor,
+          color: theme.cardTheme.color,
           margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
           child: ListTile(
             title: Text(
               CategoryData.displayName(e.key),
-              style: const TextStyle(color: AppConstants.textPrimary),
+              style: TextStyle(color: textColor),
             ),
             subtitle: LinearProgressIndicator(
               value: pct,
-              backgroundColor: Colors.grey.shade800,
-              valueColor: AlwaysStoppedAnimation(AppConstants.primaryColor),
+              backgroundColor: theme.dividerColor,
+              valueColor: AlwaysStoppedAnimation(theme.primaryColor),
             ),
-            trailing: Text('${(pct * 100).toStringAsFixed(0)}%'),
+            trailing: Text(
+              '${(pct * 100).toStringAsFixed(0)}%',
+              style: TextStyle(color: textColor),
+            ),
           ),
         ),
       );
@@ -204,23 +216,24 @@ class _CategoryAnalyticsPageState extends State<CategoryAnalyticsPage> {
     return rows;
   }
 
-  Widget _buildCategoryRow(Category c, double amount, double total) {
+  Widget _buildCategoryRow(Category c, double amount, double total, ThemeData theme, Color textColor) {
     final pct = total > 0 ? (amount / total) : 0.0;
     return Card(
-      color: AppConstants.cardColor,
+      color: theme.cardTheme.color,
       margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor:
-              CategoryData.categoryColors[c] ?? AppConstants.primaryColor,
+              CategoryData.categoryColors[c] ?? theme.primaryColor,
           child: Icon(CategoryData.getIconForCategory(c), color: Colors.white),
         ),
         title: Text(
           CategoryData.displayName(c),
-          style: const TextStyle(color: AppConstants.textPrimary),
+          style: TextStyle(color: textColor),
         ),
         subtitle: Text(
           '${NumberFormat.currency(symbol: AppConstants.currencySymbol).format(amount)} • ${(pct * 100).toStringAsFixed(1)}%',
+          style: TextStyle(color: textColor.withOpacity(0.7)),
         ),
       ),
     );
@@ -240,7 +253,13 @@ class _PieChartPainter extends CustomPainter {
     final radius = (size.shortestSide / 2) - 8;
 
     double startAngle = -3.14 / 2;
-    final paint = Paint()..style = PaintingStyle.fill;
+    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = 20;
+
+    if (entries.isEmpty || total == 0) {
+        paint.color = Colors.grey.withOpacity(0.2);
+        canvas.drawCircle(center, radius, paint);
+        return;
+    }
 
     for (final e in entries) {
       final sweep = total > 0 ? (e.value / total) * 3.14 * 2 : 0.0;
@@ -249,7 +268,7 @@ class _PieChartPainter extends CustomPainter {
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
         sweep,
-        true,
+        false,
         paint,
       );
       startAngle += sweep;

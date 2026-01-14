@@ -22,9 +22,15 @@ class _ReportsPageState extends State<ReportsPage> {
   final _firestoreService = FirestoreService();
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.colorScheme.onSurface;
+    final secondaryTextColor = theme.colorScheme.onSurface.withOpacity(0.6);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Spending Reports'), elevation: 0),
+      appBar: AppBar(title: Text('Spending Reports', style: TextStyle(color: textColor)), elevation: 0),
       body: StreamBuilder<QuerySnapshot<app.Transaction>>(
         stream: _firestoreService.getTransactionsStream(),
         builder: (context, snapshot) {
@@ -35,15 +41,15 @@ class _ReportsPageState extends State<ReportsPage> {
             return Center(
               child: Text(
                 'Error: ${snapshot.error}',
-                style: const TextStyle(color: AppConstants.errorColor),
+                style: TextStyle(color: theme.colorScheme.error),
               ),
             );
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'No transactions to report.',
-                style: TextStyle(color: AppConstants.textSecondary),
+                style: TextStyle(color: secondaryTextColor),
               ),
             );
           }
@@ -78,10 +84,10 @@ class _ReportsPageState extends State<ReportsPage> {
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               child: Column(
                 children: [
-                  const Text(
+                   Text(
                     'Monthly Summary',
                     style: TextStyle(
-                      color: AppConstants.textPrimary,
+                      color: textColor,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
@@ -92,13 +98,16 @@ class _ReportsPageState extends State<ReportsPage> {
                     child: _buildIncomeExpenseBarChart(
                       sortedMonths,
                       monthlySummary,
+                      textColor,
+                      secondaryTextColor,
+                      isDark,
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingLarge),
-                  const Text(
+                  Text(
                     'Category Breakdown (This Month)',
                     style: TextStyle(
-                      color: AppConstants.textPrimary,
+                      color: textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -111,7 +120,7 @@ class _ReportsPageState extends State<ReportsPage> {
                             child: Text(
                               'No spending this month',
                               style: TextStyle(
-                                color: AppConstants.textSecondary,
+                                color: secondaryTextColor,
                               ),
                             ),
                           )
@@ -154,18 +163,20 @@ class _ReportsPageState extends State<ReportsPage> {
                           vertical: 10,
                         ),
                         minimumSize: Size.zero,
+                        backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
                       onPressed: () => Navigator.pushNamed(
                         context,
                         AppConstants.routeCategoryAnalytics,
                       ),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.analytics,
-                        color: AppConstants.textPrimary,
+                        color: theme.colorScheme.primary,
                       ),
-                      label: const Text(
+                      label: Text(
                         'Open Analytics',
-                        style: TextStyle(color: AppConstants.textPrimary),
+                        style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -200,6 +211,9 @@ class _ReportsPageState extends State<ReportsPage> {
   Widget _buildIncomeExpenseBarChart(
     List<String> sortedMonths,
     Map<String, Map<String, double>> monthlySummary,
+    Color textColor,
+    Color secondaryTextColor,
+    bool isDark,
   ) {
     // Build grouped bar chart: income and expense side by side per month
     double maxY = 0.0;
@@ -220,13 +234,13 @@ class _ReportsPageState extends State<ReportsPage> {
               toY: income,
               width: 8,
               color: AppConstants.incomeColor,
-              borderRadius: BorderRadius.circular(0),
+              borderRadius: BorderRadius.circular(2),
             ),
             BarChartRodData(
               toY: expense,
               width: 8,
               color: AppConstants.expenseColor,
-              borderRadius: BorderRadius.circular(0),
+              borderRadius: BorderRadius.circular(2),
             ),
           ],
         ),
@@ -242,7 +256,7 @@ class _ReportsPageState extends State<ReportsPage> {
         gridData: FlGridData(
           show: true,
           getDrawingHorizontalLine: (value) {
-            return FlLine(color: Colors.white12, strokeWidth: 1);
+            return FlLine(color: isDark ? Colors.white12 : Colors.black12, strokeWidth: 1);
           },
         ),
         titlesData: FlTitlesData(
@@ -253,8 +267,8 @@ class _ReportsPageState extends State<ReportsPage> {
               getTitlesWidget: (double value, TitleMeta meta) {
                 return Text(
                   '${AppConstants.currencySymbol}${value.toInt()}',
-                  style: const TextStyle(
-                    color: AppConstants.textSecondary,
+                  style: TextStyle(
+                    color: secondaryTextColor,
                     fontSize: 10,
                   ),
                 );
@@ -277,8 +291,8 @@ class _ReportsPageState extends State<ReportsPage> {
                 ).format(date);
                 return Text(
                   label,
-                  style: const TextStyle(
-                    color: AppConstants.textPrimary,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 12,
                   ),
                 );

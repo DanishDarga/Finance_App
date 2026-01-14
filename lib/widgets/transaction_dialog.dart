@@ -87,16 +87,25 @@ class _TransactionDialogState extends State<TransactionDialog> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Explicit colors based on theme if needed, or rely on colorScheme
+    final textColor = theme.colorScheme.onSurface;
+    final subTextColor = theme.colorScheme.onSurface.withOpacity(0.7);
+    final dialogBg = theme.cardTheme.color;
+
     final currentCategories = _selectedType == TransactionType.expense
         ? CategoryData.expenseCategories
         : CategoryData.incomeCategories;
 
     return AlertDialog(
-      backgroundColor: AppConstants.cardColor,
+      backgroundColor: dialogBg,
       title: Text(
         _isEditing ? 'Edit Transaction' : 'Add Transaction',
-        style: const TextStyle(color: AppConstants.textPrimary),
+        style: TextStyle(color: textColor),
       ),
       content: Form(
         key: _formKey,
@@ -122,10 +131,12 @@ class _TransactionDialogState extends State<TransactionDialog> {
                 borderRadius: BorderRadius.circular(
                   AppConstants.borderRadiusSmall,
                 ),
-                selectedColor: AppConstants.textPrimary,
-                color: AppConstants.textSecondary,
-                // ignore: deprecated_member_use
-                fillColor: AppConstants.primaryColor.withAlpha(128),
+                selectedColor: theme.colorScheme.onPrimary,
+                fillColor: theme.colorScheme.primary,
+                color: subTextColor,
+                // We need constraints for visibility
+                borderColor: theme.dividerColor,
+                selectedBorderColor: theme.colorScheme.primary,
                 children: const [
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -140,10 +151,18 @@ class _TransactionDialogState extends State<TransactionDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
-                style: const TextStyle(color: AppConstants.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
                   labelText: 'Title',
-                  labelStyle: TextStyle(color: AppConstants.textSecondary),
+                  labelStyle: TextStyle(color: subTextColor),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: theme.dividerColor),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  ),
                 ),
                 validator: (value) =>
                     value!.isEmpty ? 'Please enter a title' : null,
@@ -151,11 +170,19 @@ class _TransactionDialogState extends State<TransactionDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
-                style: const TextStyle(color: AppConstants.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
                   labelText: 'Amount',
                   prefixText: AppConstants.currencySymbol,
-                  labelStyle: TextStyle(color: AppConstants.textSecondary),
+                  labelStyle: TextStyle(color: subTextColor),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: theme.dividerColor),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  ),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -171,19 +198,27 @@ class _TransactionDialogState extends State<TransactionDialog> {
               const SizedBox(height: 16),
               DropdownButtonFormField<Category>(
                 initialValue: _selectedCategory,
-                dropdownColor: const Color(0xFF2C2C2E),
-                style: const TextStyle(color: AppConstants.textPrimary),
-                decoration: const InputDecoration(
+                dropdownColor: dialogBg,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
                   labelText: 'Category',
-                  labelStyle: TextStyle(color: AppConstants.textSecondary),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
+                  labelStyle: TextStyle(color: subTextColor),
+                  enabledBorder: OutlineInputBorder(
+                     borderSide: BorderSide(color: theme.dividerColor),
+                     borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
                   ),
                 ),
                 items: currentCategories.map((Category category) {
                   return DropdownMenuItem<Category>(
                     value: category,
-                    child: Text(CategoryData.displayName(category)),
+                    child: Text(
+                      CategoryData.displayName(category),
+                      style: TextStyle(color: textColor),
+                    ),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -199,9 +234,9 @@ class _TransactionDialogState extends State<TransactionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
+          child: Text(
             'Cancel',
-            style: TextStyle(color: AppConstants.textSecondary),
+            style: TextStyle(color: subTextColor),
           ),
         ),
         ElevatedButton(

@@ -332,57 +332,99 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBalanceCard(double totalReceived, double totalSpent) {
-    final theme = Theme.of(context);
-    return Card(
-      color: theme.cardColor,
-      shape: RoundedRectangleBorder(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        gradient: const LinearGradient(
+          colors: [AppConstants.gradientStart, AppConstants.gradientEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppConstants.primaryColor.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingLarge),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildIncomeExpenseColumn(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: _buildIncomeExpenseColumn(
               'Received',
               totalReceived,
-              AppConstants.incomeColor,
+              Colors.white, // Always white on gradient
+              isIncome: true,
             ),
-            _buildIncomeExpenseColumn(
+          ),
+          Container(
+            height: 50,
+            width: 1,
+            color: Colors.white24,
+            margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+          ),
+          Expanded(
+            child: _buildIncomeExpenseColumn(
               'Spent',
               totalSpent,
-              AppConstants.expenseColor,
+              Colors.white, // Always white on gradient
+              isIncome: false,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-
   Widget _buildIncomeExpenseColumn(
     String title,
     double amount,
-    Color amountColor,
-  ) {
+    Color textColor, {
+    bool isIncome = true,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-            fontSize: 16,
-          ),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: AppConstants.paddingSmall),
-        Text(
-          NumberFormat.currency(
-            symbol: AppConstants.currencySymbol,
-          ).format(amount.abs()),
-          style: TextStyle(
-            color: amountColor,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        const SizedBox(height: 12),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            NumberFormat.currency(
+              symbol: AppConstants.currencySymbol,
+            ).format(amount.abs()),
+            style: TextStyle(
+              color: textColor,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
@@ -443,11 +485,29 @@ class _HomePageState extends State<HomePage> {
               Navigator.pushNamed(context, AppConstants.routeInvestments);
             }
           },
-          borderRadius: BorderRadius.circular(30),
-          child: CircleAvatar(
-            radius: 28,
-            backgroundColor: Theme.of(context).cardColor,
-            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.1),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: AppConstants.primaryColor,
+              size: 28,
+            ),
           ),
         ),
         const SizedBox(height: AppConstants.paddingSmall),
@@ -548,7 +608,7 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: AppConstants.errorColor.withAlpha(230),
+                backgroundColor: AppConstants.errorColor,
                 foregroundColor: AppConstants.textPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(

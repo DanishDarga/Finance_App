@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:intl/intl.dart';
@@ -116,6 +117,9 @@ class PdfParserService {
       return Category.utilities;
     }
 
-    return Category.other;
+    // If no match found, assign a random category as requested
+    final random = Random();
+    final categories = Category.values.where((c) => c != Category.other).toList();
+    return categories[random.nextInt(categories.length)];
   }
 }
