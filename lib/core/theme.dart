@@ -151,3 +151,4 @@ class _NoTransitionBuilder extends PageTransitionsBuilder {
     return child;
   }
 }
+
