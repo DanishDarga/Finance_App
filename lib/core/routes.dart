@@ -9,6 +9,9 @@ import '../pages/bills/bills_page.dart';
 import '../pages/investments/investments_page.dart';
 import '../pages/reports/reports_page.dart';
 import '../pages/analytics/category_analytics_page.dart';
+import '../pages/stocks/stock_market_page.dart';
+import '../pages/split/split_dashboard.dart';
+import '../pages/split/add_split_page.dart';
 import 'constants.dart';
 
 /// App routing configuration
@@ -65,6 +68,21 @@ class AppRoutes {
       case AppConstants.routeCategoryAnalytics:
         return MaterialPageRoute(
           builder: (_) => const CategoryAnalyticsPage(),
+          settings: settings,
+        );
+      case AppConstants.routeStocks:
+        return MaterialPageRoute(
+          builder: (_) => const StockMarketPage(),
+          settings: settings,
+        );
+      case AppConstants.routeSplitDashboard:
+        return MaterialPageRoute(
+          builder: (_) => const SplitDashboard(),
+          settings: settings,
+        );
+      case AppConstants.routeAddSplit:
+        return MaterialPageRoute(
+          builder: (_) => const AddSplitPage(),
           settings: settings,
         );
       default:

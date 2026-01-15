@@ -5,6 +5,8 @@ import '../models/bill.dart';
 import '../models/investment.dart';
 import '../models/transaction.dart' as app;
 import '../models/category_data.dart';
+import '../core/constants.dart';
+import 'notification_service.dart';
 
 /// Service for handling Firestore database operations
 class FirestoreService {
@@ -88,9 +90,64 @@ class FirestoreService {
 
   // ==================== Transactions ====================
 
+  final _notificationService = NotificationService();
+
   /// Add a new transaction
   Future<void> addTransaction(app.Transaction transaction) async {
     await _transactionsRef.add(transaction);
+    if (transaction.amount < 0) {
+      await _checkBudgetLimit(transaction);
+    }
+  }
+
+  Future<void> _checkBudgetLimit(app.Transaction transaction) async {
+    final year = transaction.date.year;
+    final month = transaction.date.month;
+    
+    // 1. Get Budget
+    final budgetDocId = '$year-${month.toString().padLeft(2, '0')}';
+    final budgetDoc = await _budgetsRef.doc(budgetDocId).get();
+    
+    if (!budgetDoc.exists || budgetDoc.data() == null) return;
+    
+    final budgetAmount = budgetDoc.data()!.amount;
+    if (budgetAmount <= 0) return;
+
+    // 2. Get Total Expenses for Month
+    // Note: fetching all transactions might be heavy for very large datasets, 
+    // but standard for personal finance apps. 
+    // A more optimized way is to maintain a running total in the budget doc,
+    // but for now, we calculate on the fly for accuracy.
+    final startOfMonth = DateTime(year, month, 1);
+    final endOfMonth = DateTime(year, month + 1, 0, 23, 59, 59);
+
+    final snapshot = await _transactionsRef
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+        .get();
+
+    double totalSpent = 0;
+    for (var doc in snapshot.docs) {
+      if (doc.data().amount < 0) {
+        totalSpent += doc.data().amount.abs();
+      }
+    }
+
+    // 3. Compare
+    if (totalSpent > budgetAmount) {
+      await _notificationService.showBudgetAlert(
+        'Budget Exceeded!', 
+        'You have exceeded your monthly budget of ${AppConstants.currencySymbol}$budgetAmount.'
+      );
+    } else if (totalSpent >= budgetAmount * 0.8) {
+      // Simple check: Just alert if > 80%. 
+      // User might get multiple alerts if they keep adding small txns, 
+      // but better safe than sorry for v1.
+      await _notificationService.showBudgetAlert(
+        'Approaching Budget Limit', 
+        'You have used ${(totalSpent / budgetAmount * 100).toStringAsFixed(0)}% of your monthly budget.'
+      );
+    }
   }
 
   /// Get a stream of transactions

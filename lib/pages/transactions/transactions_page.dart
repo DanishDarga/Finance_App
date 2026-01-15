@@ -10,6 +10,8 @@ import '../../core/constants.dart';
 
 enum SortOption { dateDescending, amountAscending, amountDescending }
 
+enum FilterType { all, income, expense }
+
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({super.key});
 
@@ -20,6 +22,7 @@ class TransactionsPage extends StatefulWidget {
 class _TransactionsPageState extends State<TransactionsPage> {
   final _firestoreService = FirestoreService();
   SortOption _currentSortOption = SortOption.dateDescending;
+  FilterType _filterType = FilterType.all;
   Category? _selectedCategory;
 
   @override
@@ -84,16 +87,76 @@ class _TransactionsPageState extends State<TransactionsPage> {
           }
 
           final all = snapshot.data!.docs.map((doc) => doc.data()).toList();
-          final transactions = _selectedCategory == null
+          
+          // 1. Filter by Type (Income/Expense/All)
+          final typeFiltered = _filterType == FilterType.all
               ? all
-              : all.where((t) => t.category == _selectedCategory).toList();
+              : _filterType == FilterType.income
+                  ? all.where((t) => t.amount > 0).toList()
+                  : all.where((t) => t.amount < 0).toList();
+
+          // 2. Filter by Category
+          final transactions = _selectedCategory == null
+              ? typeFiltered
+              : typeFiltered.where((t) => t.category == _selectedCategory).toList();
 
           return Column(
             children: [
               Padding(
+                padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                child: SegmentedButton<FilterType>(
+                  segments: const [
+                    ButtonSegment(
+                      value: FilterType.all,
+                      label: Text('All'),
+                    ),
+                    ButtonSegment(
+                      value: FilterType.income,
+                      label: Text('Income'),
+                    ),
+                    ButtonSegment(
+                      value: FilterType.expense,
+                      label: Text('Expense'),
+                    ),
+                  ],
+                  selected: {_filterType},
+                  onSelectionChanged: (Set<FilterType> newSelection) {
+                    setState(() {
+                      _filterType = newSelection.first;
+                    });
+                  },
+                  showSelectedIcon: false,
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.selected)) {
+                          return Theme.of(context).colorScheme.primary.withOpacity(0.1);
+                        }
+                         return Theme.of(context).cardColor;
+                      },
+                    ),
+                    foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                      (Set<MaterialState> states) {
+                         if (states.contains(MaterialState.selected)) {
+                          return Theme.of(context).colorScheme.primary;
+                        }
+                        return Theme.of(context).colorScheme.onSurface;
+                      },
+                    ),
+                    side: MaterialStateProperty.all(
+                      BorderSide(
+                        color: Theme.of(context).dividerColor.withOpacity(0.2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppConstants.paddingMedium,
-                  vertical: 8,
+                  vertical: 8, // Reduced since we have padding above now
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

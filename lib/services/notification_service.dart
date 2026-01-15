@@ -83,4 +83,28 @@ class NotificationService {
     if (bill.id == null) return;
     _flutterLocalNotificationsPlugin.cancel(bill.id.hashCode);
   }
+  /// Show an immediate budget alert notification
+  Future<void> showBudgetAlert(String title, String body) async {
+    const androidDetails = AndroidNotificationDetails(
+      'budget_alerts',
+      'Budget Alerts',
+      channelDescription: 'Notifications for budget limits',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails();
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _flutterLocalNotificationsPlugin.show(
+      DateTime.now().millisecond, // Unique ID
+      title,
+      body,
+      details,
+    );
+  }
 }

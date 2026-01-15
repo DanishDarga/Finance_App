@@ -56,8 +56,10 @@ class AppConstants {
 
   // Currency
   static const String currencySymbol = '₹';
+  static const String routeStocks = '/stocks';
 
-  // Date Formats
+  static const String routeSplitDashboard = '/split/dashboard';
+  static const String routeAddSplit = '/split/add';
   static const String dateFormatDisplay = 'yMMMd';
   static const String dateFormatMonthYear = 'yMMMM';
   static const String dateFormatMonth = 'MMM';

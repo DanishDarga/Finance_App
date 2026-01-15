@@ -31,15 +31,23 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await _authService.signIn(
-        _emailController.text,
-        _passwordController.text,
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
-      // Navigation will be handled by AuthGate
+      // Navigation is handled by AuthGate via stream, 
+      // but if we were pushing this page manually we might pop it.
+      // However, usually AuthGate is the root.
+      // If we are strictly following the routes, AuthGate listens to user changes.
+      // So successful login will trigger a rebuild in AuthGate.
+      // But if we are pushed here, we might want to ensure we navigate back or to home.
+      
+      // Since specific routing wasn't clear, trust auth state listener.
+      
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.message ?? 'Login failed. Please try again.'),
+            content: Text(e.message ?? 'Login failed'),
             backgroundColor: AppConstants.errorColor,
           ),
         );
@@ -51,89 +59,169 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _navigateToRegister() {
-    Navigator.pushNamed(context, AppConstants.routeRegister);
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGoogle();
+      // Navigation handled by auth stream
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign In failed: ${e.toString()}'),
+            backgroundColor: AppConstants.errorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.paddingLarge),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Welcome Back',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: AppConstants.textPrimary,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppConstants.paddingLarge),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    size: 64,
+                    color: AppConstants.primaryColor,
                   ),
-                ),
-                const SizedBox(height: AppConstants.paddingSmall),
-                Text(
-                  'Login to your ${AppConstants.appName} account',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppConstants.textSecondary,
+                  const SizedBox(height: 24),
+                  Text(
+                    'Welcome Back',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                TextFormField(
-                  controller: _emailController,
-                  style: const TextStyle(color: AppConstants.textPrimary),
-                  validator: (value) {
-                    if (value == null || !value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
+                  const SizedBox(height: 8),
+                  Text(
+                    'Sign in to continue to ${AppConstants.appName}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppConstants.paddingMedium),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  style: const TextStyle(color: AppConstants.textPrimary),
-                  validator: (value) {
-                    if (value == null || value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
+                  const SizedBox(height: 48),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) => (value == null || !value.contains('@'))
+                        ? 'Please enter a valid email'
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 32),
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: _login,
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 18),
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Icon(Icons.lock_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) => (value == null || value.length < 6)
+                        ? 'Password must be at least 6 characters'
+                        : null,
+                  ),
+                  const SizedBox(height: 32),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppConstants.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppConstants.borderRadiusSmall,
+                              ),
+                            ),
+                          ),
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Theme.of(context).dividerColor)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          ),
                         ),
                       ),
-                const SizedBox(height: AppConstants.paddingLarge),
-                TextButton(
-                  onPressed: _navigateToRegister,
-                  child: const Text(
-                    "Don't have an account? Register",
-                    style: TextStyle(color: AppConstants.textSecondary),
+                      Expanded(child: Divider(color: Theme.of(context).dividerColor)),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: _loginWithGoogle,
+                    icon: Image.asset(
+                      'assets/google_logo.png', // We don't have this asset, so using Icon as fallback usually, but I'll use text or a standard icon if asset is missing. To avoid asset error, I'll use an Icon for now.
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, size: 24),
+                    ),
+                    label: const Text('Continue with Google'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Don\'t have an account?',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, AppConstants.routeRegister);
+                        },
+                        child: const Text(
+                          'Register',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppConstants.primaryColor),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -141,4 +229,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-

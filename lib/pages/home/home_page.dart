@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../services/firestore_service.dart';
@@ -47,64 +48,74 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: _buildAppBar(),
-          drawer: _buildDrawer(),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.paddingMedium,
-            ),
-            child: StreamBuilder<QuerySnapshot<app.Transaction>>(
-              stream: _firestoreService.getTransactionsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  );
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                final transactions = snapshot.data!.docs
-                    .map((doc) => doc.data())
-                    .toList();
-
-                double totalReceived = 0.0;
-                double totalSpent = 0.0;
-
-                for (final transaction in transactions) {
-                  if (transaction.amount > 0) {
-                    totalReceived += transaction.amount;
-                  } else {
-                    totalSpent += transaction.amount;
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldPop = await _showExitConfirmationDialog();
+        if (shouldPop && context.mounted) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Stack(
+        children: [
+          Scaffold(
+            appBar: _buildAppBar(),
+            drawer: _buildDrawer(),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+              ),
+              child: StreamBuilder<QuerySnapshot<app.Transaction>>(
+                stream: _firestoreService.getTransactionsStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
                   }
-                }
 
-                return _buildTransactionList(
-                  context,
-                  transactions,
-                  totalReceived,
-                  totalSpent,
-                );
-              },
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  final transactions = snapshot.data!.docs
+                      .map((doc) => doc.data())
+                      .toList();
+
+                  double totalReceived = 0.0;
+                  double totalSpent = 0.0;
+
+                  for (final transaction in transactions) {
+                    if (transaction.amount > 0) {
+                      totalReceived += transaction.amount;
+                    } else {
+                      totalSpent += transaction.amount;
+                    }
+                  }
+
+                  return _buildTransactionList(
+                    context,
+                    transactions,
+                    totalReceived,
+                    totalSpent,
+                  );
+                },
+              ),
             ),
           ),
-        ),
-        if (_isParsing) const Positioned.fill(child: MinimalLoader()),
-      ],
+          if (_isParsing) const Positioned.fill(child: MinimalLoader()),
+        ],
+      ),
     );
   }
 
@@ -184,6 +195,14 @@ class _HomePageState extends State<HomePage> {
             _buildDrawerListTile(Icons.swap_horiz, 'Transactions', () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeTransactions);
+            }),
+            _buildDrawerListTile(Icons.trending_up, 'Market Trends', () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeStocks);
+            }),
+            _buildDrawerListTile(Icons.call_split, 'Split Bills', () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeSplitDashboard);
             }),
             const Divider(),
             Consumer<ThemeProvider>(
@@ -639,6 +658,28 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (_) => TransactionDialog(transaction: transaction),
     );
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Theme.of(context).cardColor,
+            title: const Text('Exit App'),
+            content: const Text('Do you want to exit the app?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Yes'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   void _signOut() async {

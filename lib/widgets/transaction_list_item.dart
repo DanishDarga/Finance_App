@@ -61,6 +61,8 @@ class TransactionListItem extends StatelessWidget {
         ),
         title: Text(
           transaction.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.w600,
